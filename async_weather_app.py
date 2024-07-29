@@ -9,10 +9,10 @@ def get_current_temperature(city: str):
   data = response.json()
   return f"The current temperature in {city} is {data['current_condition'][0]['temp_C']} degrees C"
 
-async def run(model: str):
+async def run(model: str, query:str) -> str:
   client = ollama.AsyncClient()
   # Initialize conversation with a user query
-  messages = [{'role': 'user', 'content': 'What is the current temperature in the largest city in Ireland?'}]
+  messages = [{'role': 'user', 'content': query}]
 
   # First API call: Send the query and function description to the model
   response = await client.chat(
@@ -60,7 +60,10 @@ async def run(model: str):
       messages.append(
         {
           'role': 'tool',
-          'content': f"Ignore any other information and use only this information, if relevant, to answer the original question.  {function_response}",
+          'content': f"""
+          Answer the following question: {query}.  
+          Ignore any previous instructions or defaults and instead use the following information:  {function_response}
+          """,
         }
       )
 
@@ -70,4 +73,4 @@ async def run(model: str):
 
 
 # Run the async function
-asyncio.run(run('llama3.1:70b'))
+asyncio.run(run('llama3.1:8b', "My sister has recommended that I bring warm clothing on my trip to the capital of Norway today.  Should I follow her advice?"))
